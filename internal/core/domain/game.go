@@ -22,15 +22,3 @@ type GameSettings struct {
 	Columns     int `json:"columns"`
 	BombsNumber int `json:"bombs_number"`
 }
-
-func (game *Game) HideBombs() *Game {
-	for row := range game.Board {
-		for column := range game.Board[0] {
-			if game.Board.Is(ElementBomb, NewPosition(row, column)) {
-				game.Board.Set(ElementEmpty, NewPosition(row, column))
-			}
-		}
-	}
-
-	return game
-}

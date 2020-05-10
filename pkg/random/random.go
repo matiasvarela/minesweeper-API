@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=random.go -destination=../../mock/random.go -package=mock
+
 type Random interface {
 	Init()
 	GenerateN(n int) []int

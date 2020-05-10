@@ -9,7 +9,7 @@ import (
 var (
 	E = domain.ElementEmpty
 	B = domain.ElementBomb
-	R = domain.ElementRevealed
+	R = domain.ElementEmptyRevealed
 )
 
 func TestNewEmptyBoard(t *testing.T) {
@@ -36,7 +36,7 @@ func TestBoard_Is(t *testing.T) {
 	}
 
 	// Execute
-	result := board.Is(B, domain.NewPosition(1, 2))
+	result := board.Is(domain.NewPosition(1, 2), B)
 
 	// Verify
 	assert.True(t, result)
@@ -66,7 +66,7 @@ func TestBoard_Set(t *testing.T) {
 	}
 
 	// Execute
-	board.Set(B, domain.NewPosition(1, 2))
+	board.Set(domain.NewPosition(1, 2), B)
 
 	// Verify
 	assert.Equal(t, B, board[1][2])

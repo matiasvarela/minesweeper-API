@@ -1,11 +1,13 @@
 package domain
 
 const (
-	ElementEmpty        = Element('E')
-	ElementBomb         = Element('B')
-	ElementRevealed     = Element('R')
-	ElementRevealedBomb = Element('X')
-	ElementMark         = Element('Y')
+	ElementEmpty         = Element('e')
+	ElementEmptyMarked   = Element('X')
+	ElementEmptyRevealed = Element('E')
+
+	ElementBomb          = Element('b')
+	ElementBombMarked    = Element('Y')
+	ElementBombRevealed  = Element('B')
 )
 
 type Board [][]Element
@@ -42,13 +44,20 @@ func (board Board) Get(pos Position) Element {
 }
 
 // Set put the given element in the given position
-func (board Board) Set(element Element, pos Position) {
+func (board Board) Set(pos Position, element Element) {
 	board[pos.Row][pos.Column] = element
 }
 
-// Is returns true if the board contains the given element in the given position; returns false otherwise
-func (board Board) Is(element Element, pos Position) bool {
-	return element == board.Get(pos)
+// Is returns true if the element in the given position is one of the elements given
+func (board Board) Is(pos Position, elements ...Element) bool {
+	e := board.Get(pos)
+	for _, element := range elements {
+		if e == element {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsValidPosition returns true if the given position is within the range of the board; returns false otherwise
@@ -80,8 +89,8 @@ func (board Board) Neighbors(pos Position) []Position {
 func (board Board) HideBombs() {
 	for row := range board {
 		for column := range board[0] {
-			if board.Is(ElementBomb, NewPosition(row, column)) {
-				board.Set(ElementEmpty, NewPosition(row, column))
+			if board.Is(NewPosition(row, column), ElementBomb) {
+				board.Set(NewPosition(row, column), ElementEmpty)
 			}
 		}
 	}

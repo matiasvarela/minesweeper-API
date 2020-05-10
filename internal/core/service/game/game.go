@@ -46,7 +46,31 @@ func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
 }
 
 func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, error) {
-	return domain.Game{}, nil
+	game, err := srv.Get(id)
+	if err != nil {
+		return domain.Game{}, errors.Wrap(err, err.Error())
+	}
+
+	pos := domain.NewPosition(row, column)
+
+	switch game.Board.Get(pos) {
+	case domain.ElementEmpty:
+		game.Board.Set(pos, domain.ElementEmptyMarked)
+	case domain.ElementEmptyMarked:
+		game.Board.Set(pos, domain.ElementEmpty)
+	case domain.ElementBomb:
+		game.Board.Set(pos, domain.ElementBombMarked)
+	case domain.ElementBombMarked:
+		game.Board.Set(pos, domain.ElementBomb)
+	default:
+		return game, nil
+	}
+
+	if err := srv.repository.Save(game); err != nil {
+		return domain.Game{}, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at saving game into repository")
+	}
+
+	return game, nil
 }
 
 func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, error) {
