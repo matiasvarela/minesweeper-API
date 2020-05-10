@@ -1,19 +1,48 @@
 package game
 
-import "github.com/matiasvarela/minesweeper-API/internal/core/domain"
+import (
+	"github.com/matiasvarela/errors"
+	"github.com/matiasvarela/minesweeper-API/internal/core/domain"
+	"github.com/matiasvarela/minesweeper-API/internal/core/port"
+	"github.com/matiasvarela/minesweeper-API/pkg/apperrors"
+	"github.com/matiasvarela/minesweeper-API/pkg/random"
+)
 
-type service struct{}
+type service struct {
+	rnd        random.Random
+	repository port.GameRepository
+}
 
-func NewService() *service {
-	return &service{}
+func NewService(rnd random.Random, repository port.GameRepository) *service {
+	return &service{rnd: rnd, repository: repository}
 }
 
 func (srv *service) Get(id string) (domain.Game, error) {
-	return domain.Game{}, nil
+	game, err := srv.repository.Get(id)
+	if err != nil {
+		return domain.Game{}, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at getting game from repository")
+	}
+
+	if game == nil {
+		return domain.Game{}, errors.New(apperrors.NotFound, nil, "game has not been found", "")
+	}
+
+	return *game, nil
 }
 
 func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
-	return domain.Game{}, nil
+	game := domain.Game{
+		ID:       srv.rnd.GenerateID(),
+		Settings: settings,
+		Board:    domain.NewEmptyBoard(settings.Rows, settings.Columns),
+		State:    domain.GameStateNew,
+	}
+
+	if err := srv.repository.Save(game); err != nil {
+		return domain.Game{}, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at saving game into repository")
+	}
+
+	return game, nil
 }
 
 func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, error) {

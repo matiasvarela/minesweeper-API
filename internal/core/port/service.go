@@ -1,4 +1,4 @@
-package ports
+package port
 
 import "github.com/matiasvarela/minesweeper-API/internal/core/domain"
 

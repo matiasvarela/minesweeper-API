@@ -1,9 +1,11 @@
 package domain
 
 const (
-	ElementEmpty    = Element('E')
-	ElementBomb     = Element('B')
-	ElementRevealed = Element('R')
+	ElementEmpty        = Element('E')
+	ElementBomb         = Element('B')
+	ElementRevealed     = Element('R')
+	ElementRevealedBomb = Element('X')
+	ElementMark         = Element('Y')
 )
 
 type Board [][]Element
@@ -72,4 +74,15 @@ func (board Board) Neighbors(pos Position) []Position {
 	}
 
 	return neighbors
+}
+
+// HideBombs replace bombs for empty squares
+func (board Board) HideBombs() {
+	for row := range board {
+		for column := range board[0] {
+			if board.Is(ElementBomb, NewPosition(row, column)) {
+				board.Set(ElementEmpty, NewPosition(row, column))
+			}
+		}
+	}
 }

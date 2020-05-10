@@ -187,3 +187,22 @@ func TestBoard_Neighbors(t *testing.T) {
 		})
 	}
 }
+
+func TestBoard_HideBombs(t *testing.T) {
+	// Setup
+	board := domain.Board{
+		{E, R, E, B, E, B},
+		{E, E, B, E, B, E},
+		{B, E, E, B, E, E},
+	}
+
+	// Execute
+	board.HideBombs()
+
+	// Verify
+	assert.Equal(t, domain.Board{
+		{E, R, E, E, E, E},
+		{E, E, E, E, E, E},
+		{E, E, E, E, E, E},
+	}, board)
+}

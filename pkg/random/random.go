@@ -3,11 +3,13 @@ package random
 import (
 	"math/rand"
 	"time"
+	"github.com/google/uuid"
 )
 
 type Random interface {
 	Init()
 	GenerateN(n int) []int
+	GenerateID() string
 }
 
 type random struct{}
@@ -22,4 +24,8 @@ func (r *random) Init() {
 
 func (r *random) GenerateN(n int) []int {
 	return rand.Perm(n)
+}
+
+func (r *random) GenerateID() string {
+	return uuid.New().String()
 }
