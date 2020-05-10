@@ -65,8 +65,8 @@ func (board Board) IsValidPosition(pos Position) bool {
 	return pos.Row >= 0 && pos.Column >= 0 && pos.Row < len(board) && pos.Column < len(board[0])
 }
 
-// Neighbors returns the neighbors of the given position
-func (board Board) Neighbors(pos Position) []Position {
+// GetNeighborsIfNoBombs returns the neighbors of the given position or empty if at least one neighbor has a bomb
+func (board Board) GetNeighborsIfNoBombs(pos Position) []Position {
 	var neighbors []Position
 	var current Position
 
@@ -75,6 +75,14 @@ func (board Board) Neighbors(pos Position) []Position {
 			current = NewPosition(pos.Row-di, pos.Column-dj)
 
 			if current == pos || !board.IsValidPosition(current) {
+				continue
+			}
+
+			if board.Is(current, ElementBomb) {
+				return []Position{}
+			}
+
+			if !board.Is(current, ElementEmpty) {
 				continue
 			}
 
@@ -94,4 +102,17 @@ func (board Board) HideBombs() {
 			}
 		}
 	}
+}
+
+func (board Board) Count(element Element) int {
+	count := 0
+	for row := range board {
+		for column := range board[0] {
+			if board[row][column] == element {
+				count ++
+			}
+		}
+	}
+
+	return count
 }

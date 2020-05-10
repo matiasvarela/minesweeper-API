@@ -5,16 +5,18 @@ import (
 	"github.com/matiasvarela/minesweeper-API/internal/core/domain"
 	"github.com/matiasvarela/minesweeper-API/internal/core/port"
 	"github.com/matiasvarela/minesweeper-API/pkg/apperrors"
+	"github.com/matiasvarela/minesweeper-API/pkg/clock"
 	"github.com/matiasvarela/minesweeper-API/pkg/random"
 )
 
 type service struct {
 	rnd        random.Random
+	clock      clock.Clock
 	repository port.GameRepository
 }
 
-func NewService(rnd random.Random, repository port.GameRepository) *service {
-	return &service{rnd: rnd, repository: repository}
+func NewService(rnd random.Random, clock clock.Clock, repository port.GameRepository) *service {
+	return &service{rnd: rnd, clock: clock, repository: repository}
 }
 
 func (srv *service) Get(id string) (domain.Game, error) {
@@ -53,6 +55,10 @@ func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, err
 
 	pos := domain.NewPosition(row, column)
 
+	if !game.Board.IsValidPosition(pos) {
+		return domain.Game{}, errors.New(apperrors.InvalidInput, nil, "invalid row and column parameters", "")
+	}
+
 	switch game.Board.Get(pos) {
 	case domain.ElementEmpty:
 		game.Board.Set(pos, domain.ElementEmptyMarked)
@@ -74,5 +80,89 @@ func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, err
 }
 
 func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, error) {
-	return domain.Game{}, nil
+	game, err := srv.Get(id)
+	if err != nil {
+		return domain.Game{}, errors.Wrap(err, err.Error())
+	}
+
+	if game.State == domain.GameStateLost || game.State == domain.GameStateWon {
+		return domain.Game{}, errors.New(apperrors.InvalidInput, nil, "game has already finished", "")
+	}
+
+	pos := domain.NewPosition(row, column)
+
+	if !game.Board.IsValidPosition(pos) {
+		return domain.Game{}, errors.New(apperrors.InvalidInput, nil, "invalid row and column parameters", "")
+	}
+
+	switch game.Board.Get(pos) {
+	case domain.ElementEmpty:
+		if game.State == domain.GameStateNew {
+			srv.startGame(&game, pos)
+			break
+		}
+
+		srv.revealInCascade(&game, pos)
+
+		if game.Board.Count(domain.ElementEmptyRevealed) == game.Settings.Rows*game.Settings.Columns - game.Settings.BombsNumber{
+			game.State = domain.GameStateWon
+			game.EndedAt = srv.clock.Now()
+		}
+	case domain.ElementBomb:
+		game.Board.Set(pos, domain.ElementBombRevealed)
+		game.State = domain.GameStateLost
+		game.EndedAt = srv.clock.Now()
+	default:
+		return game, nil
+	}
+
+	if err := srv.repository.Save(game); err != nil {
+		return domain.Game{}, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at saving game into repository")
+	}
+
+	return game, nil
+}
+
+func (srv *service) startGame(game *domain.Game, pos domain.Position) {
+	game.State = domain.GameStateOnGoing
+	game.StartedAt = srv.clock.Now()
+	game.Board.Set(pos, domain.ElementEmptyRevealed)
+
+	srv.fillBoardWithBombs(game, pos)
+}
+
+func (srv *service) fillBoardWithBombs(game *domain.Game, exclude domain.Position) {
+	var row, column int
+	var bomb domain.Position
+
+	count := 0
+	for _, v := range srv.rnd.GenerateN(game.Settings.BombsNumber + 1) {
+		if count == game.Settings.BombsNumber {
+			break
+		}
+
+		row = v / game.Settings.Columns
+		column = v - row*game.Settings.Columns
+
+		bomb = domain.NewPosition(row, column)
+		if bomb == exclude {
+			continue
+		}
+
+		game.Board.Set(bomb, domain.ElementBomb)
+		count++
+	}
+}
+
+func (srv *service) revealInCascade(game *domain.Game, pos domain.Position) {
+	switch game.Board.Get(pos) {
+	case domain.ElementEmpty:
+		game.Board.Set(pos, domain.ElementEmptyRevealed)
+	}
+
+	for _, neighbor := range game.Board.GetNeighborsIfNoBombs(pos) {
+		srv.revealInCascade(game, neighbor)
+	}
+
+	return
 }

@@ -15,6 +15,7 @@ type Game struct {
 	Settings  GameSettings `json:"settings"`
 	State     string       `json:"state"`
 	StartedAt time.Time    `json:"started_at"`
+	EndedAt   time.Time    `json:"ended_at"`
 }
 
 type GameSettings struct {

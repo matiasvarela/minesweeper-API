@@ -131,14 +131,21 @@ func TestBoard_IsValidPosition(t *testing.T) {
 	}
 }
 
-func TestBoard_Neighbors(t *testing.T) {
+func TestBoard_GetNeighborsIfNoBombs(t *testing.T) {
 	board := domain.Board{
+		{E, E, E, E, E, E},
+		{E, E, E, E, E, E},
+		{E, E, E, E, E, E},
+	}
+
+	boardWithBombs := domain.Board{
+		{E, E, E, E, E, E},
+		{B, E, E, E, E, E},
 		{E, E, E, E, B, E},
-		{E, B, E, E, E, B},
-		{B, E, E, E, R, E},
 	}
 
 	type args struct {
+		board  domain.Board
 		row    int
 		column int
 	}
@@ -154,26 +161,31 @@ func TestBoard_Neighbors(t *testing.T) {
 	}{
 		{
 			name: "get neighbors from middle",
-			args: args{row: 1, column: 2},
+			args: args{board: board, row: 1, column: 2},
 			want: want{result: []domain.Position{
-				{Row:2, Column:3}, {Row:2, Column:2}, {Row:2, Column:1},
-				{Row:1, Column:3}, {Row:1, Column:1},
-				{Row:0, Column:3}, {Row:0, Column:2}, {Row:0, Column:1}},
+				{Row: 2, Column: 3}, {Row: 2, Column: 2}, {Row: 2, Column: 1},
+				{Row: 1, Column: 3}, {Row: 1, Column: 1},
+				{Row: 0, Column: 3}, {Row: 0, Column: 2}, {Row: 0, Column: 1}},
 			},
 		},
 		{
 			name: "get neighbors from up-right corner",
-			args: args{row: 0, column: 5},
+			args: args{board: board, row: 0, column: 5},
 			want: want{result: []domain.Position{
-				{Row:1, Column:5}, {Row:1, Column:4}, {Row:0, Column:4}},
+				{Row: 1, Column: 5}, {Row: 1, Column: 4}, {Row: 0, Column: 4}},
 			},
 		},
 		{
 			name: "get neighbors from down-left corner",
-			args: args{row: 2, column: 0},
+			args: args{board: board, row: 2, column: 0},
 			want: want{result: []domain.Position{
-				{Row:2, Column:1}, {Row:1, Column:1}, {Row:1, Column:0}},
+				{Row: 2, Column: 1}, {Row: 1, Column: 1}, {Row: 1, Column: 0}},
 			},
+		},
+		{
+			name: "get empty due to at least one neighbor has a bomb",
+			args: args{board: boardWithBombs, row: 1, column: 1},
+			want: want{result: []domain.Position{}},
 		},
 	}
 
@@ -181,7 +193,7 @@ func TestBoard_Neighbors(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			got := board.Neighbors(domain.NewPosition(tt.args.row, tt.args.column))
+			got := tt.args.board.GetNeighborsIfNoBombs(domain.NewPosition(tt.args.row, tt.args.column))
 
 			assert.Equal(t, tt.want.result, got)
 		})
