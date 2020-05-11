@@ -88,10 +88,10 @@ The `board` attribute is a matrix of cells that represents the board of the game
 
 | Cell | Description |
 | :--- | :--- |
-| e | empty cell |
-| E | empty revealed cell` |
-| X | empty cell marked with a flag |
-| B | a revealed cell with a bomb | 
+| e | covered cell |
+| E | empty revealed cell |
+| X | marked cell with a flag |
+| B | cell with a bomb | 
 
 The `settings` attribute contains the settings used to create the game.
 
