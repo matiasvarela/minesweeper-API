@@ -6,6 +6,19 @@ minesweeper-API is a rest api for the popular game Minesweeper. It provides the 
 3. Reveal a cell
 4. Mark a cell with a flag 
 
+## Notes about this project
+- It uses GinGonic to manage routing
+- It uses an error handling library written by my own
+- It follows a Hexagonal Architecture
+- It uses a DynamoDB to persist the games
+- It provides a Dockerfile to build and run the application
+- It provides a demo application
+- It provides a client lib written in python 
+- Testing with ~80% of code coverage. It follows the Table Driven Test pattern (https://github.com/golang/go/wiki/TableDrivenTests)
+
+## Decisions
+- All the endpoints that return the game representation hides the cells with bombs replacing them with empty cells, so it is impossible for clients of this API to know the positions of those bombs.
+
 ## Demo
 
 ```
@@ -127,7 +140,7 @@ Response
 ``` 
 
 ### Mark a cell with a flag
-Mark a cell with a flag. When a cell has been marked with a flag then it cannot be revealed.
+Mark a cell with a flag. A cell marked by flag means that that particular cell cannot be revealed unless it is unmarked. 
 
 ```http
 PUT /games/:id/mark
@@ -164,7 +177,7 @@ Response
  ``` 
 
 ### Reveal a cell
-Reveals a particular cell. If there is no adjacent bombs then all the adjacent will be revealed repeating this process until no other cell can be revealed. 
+Reveals a particular cell. If there is no adjacent bombs then all the adjacent (except those marked with a flag) will be revealed repeating this process until no other cell can be revealed. 
 
 ```http
 PUT /games/:id/reveal

@@ -7,6 +7,7 @@ import (
 	"github.com/matiasvarela/minesweeper-API/internal/core/port"
 	"github.com/matiasvarela/minesweeper-API/pkg/apierror"
 	"github.com/matiasvarela/minesweeper-API/pkg/apperrors"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -21,6 +22,7 @@ func NewGameHandler(gameService port.GameService) *GameHandler {
 func (hdl *GameHandler) Get(request *gin.Context) {
 	game, err := hdl.gameService.Get(request.Param("id"))
 	if err != nil {
+		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
@@ -33,12 +35,15 @@ func (hdl *GameHandler) Get(request *gin.Context) {
 func (hdl *GameHandler) Create(request *gin.Context) {
 	body := domain.GameSettings{}
 	if err := request.BindJSON(&body); err != nil {
-		request.AbortWithStatusJSON(apierror.New(errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")))
+		err = errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")
+		log.Error(errors.String(err))
+		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
 
 	game, err := hdl.gameService.Create(body)
 	if err != nil {
+		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
@@ -54,12 +59,15 @@ func (hdl *GameHandler) Mark(request *gin.Context) {
 		Column int `json:"column"`
 	}{}
 	if err := request.BindJSON(&body); err != nil {
-		request.AbortWithStatusJSON(apierror.New(errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")))
+		err = errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")
+		log.Error(errors.String(err))
+		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
 
 	game, err := hdl.gameService.MarkCell(request.Param("id"), body.Row, body.Column)
 	if err != nil {
+		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
@@ -75,12 +83,15 @@ func (hdl *GameHandler) Reveal(request *gin.Context) {
 		Column int `json:"column"`
 	}{}
 	if err := request.BindJSON(&body); err != nil {
-		request.AbortWithStatusJSON(apierror.New(errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")))
+		err = errors.New(apperrors.InvalidInput, err, "invalid body", "failed at bind json body")
+		log.Error(errors.String(err))
+		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}
 
 	game, err := hdl.gameService.RevealCell(request.Param("id"), body.Row, body.Column)
 	if err != nil {
+		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
 		return
 	}

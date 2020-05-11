@@ -24,6 +24,8 @@ func initDependencies() *dep.Dep {
 	}
 
 	rnd := random.NewRandom()
+	rnd.Init()
+
 	clk := clock.New()
 
 	d.GameRepository = gameRepo.NewDynamoDB(d.DynamoDB)
