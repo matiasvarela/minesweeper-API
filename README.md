@@ -1,18 +1,205 @@
 # minesweeper-API
+minesweeper-API is a rest api for the popular game Minesweeper. It provides the following endpoints
 
-## Docker
+1. Create a new game
+2. Get a game by id
+3. Reveal a cell
+4. Mark a cell with a flag 
 
-### Build image
+## Getting started
+
+### Docker
+
+#### Build image
 ````
 $ docker build -t minesweeper:1.0.0 .
 ````
 
-### Run in local
+#### Run in local environment
 ````
 $ docker run -e ENV=local -p 8080:8080 -d minesweeper:1.0.0
 ````
 
-### Run in production
+#### Run in production environment
 ````
 $ docker run -e ENV=production -e AWS_ACCESS_KEY_ID=${access_key} -e AWS_SECRET_ACCESS_KEY=${secret_access_key} -p 8080:8080 -d minesweeper:1.0.0
 ````
+
+### Local
+To run this application locally is necessary to run the local version of dynamodb in port 8000. See https://hub.docker.com/r/amazon/dynamodb-local/
+
+```
+$ go run cmd/restserver/main.go
+```
+
+## Test in production
+A version of this application has been deployed in an aws ec2 instance in the cloud
+
+Host: http://http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080
+
+```
+$ curl http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080/ping
+```
+
+## API Documentation
+
+### Create a new game
+
+```http
+POST /games
+```
+
+Body
+```json
+{
+    "rows": 4,
+    "columns": 4,
+    "bombs_number": 5
+}
+```
+
+Response
+
+The following json correspond with a `game` and from now on we will call it `game_json` 
+
+```json
+{
+  "id": "7ecbe4ee-4f1d-426a-bf8a-0d2382d61805",
+  "board": [
+    ["e","e","e","e"],
+    ["e","e","e","e"],
+    ["e","e","e","e"],
+    ["e","e","e","e"]
+  ],
+  "settings": {
+    "rows": 10,
+    "columns": 10,
+    "bombs_number": 5
+  },
+  "state": "new",
+  "started_at": "0001-01-01T00:00:00Z",
+  "ended_at": "0001-01-01T00:00:00Z"
+}
+```
+
+The `id` attribute is the unique id for the created game.
+
+The `board` attribute is a matrix of cells that represents the board of the game.
+
+| Cell | Description |
+| :--- | :--- |
+| e | empty cell |
+| E | empty revealed cell` |
+| X | empty cell marked with a flag |
+| B | a revealed cell with a bomb | 
+
+The `settings` attribute contains the settings used to create the game.
+
+The `state` attribute indicates the current state of the game 
+
+| State | Description |
+| :--- | :--- |
+| new | the game has not began  |
+| ongoing | the game has began and has not finished |
+| lost | the game is over and resulted lost because a bomb has been revealed  |
+| won | the game is over and resulted won because all the empty cells has been revealed | 
+
+The `started_at` attribute indicates the time when the first cell has been revealed.
+
+The `ended_at` attribute indicates the time when the game ended.
+
+### Get a game by id
+Get a previously created game given its unique id. 
+
+```http
+GET /games/:id
+```
+
+Response
+
+1. `game_json` if the game exists
+2. Not found
+```json
+{
+  "status": 404,
+  "code": "not_found",
+  "message": "the game has not been found"
+}
+``` 
+
+### Mark a cell with a flag
+Mark a cell with a flag. When a cell has been marked with a flag then it cannot be revealed.
+
+```http
+PUT /games/:id/mark
+```
+Body
+
+```json
+{
+    "row": 2,
+    "column": 2
+}
+```
+
+The attributes `row` and `column` refers to a particular position within the board.
+
+Response
+
+1. `game_json` is game has been marked/unmarked successfully
+2. Not found
+```json
+{
+  "status": 404,
+  "code": "not_found",
+  "message": "the game has not been found"
+}
+``` 
+3. Invalid row and column
+```json
+ {
+   "status": 400,
+   "code": "invalid_input",
+   "message": "invalid row and column parameters"
+ }
+ ``` 
+
+### Reveal a cell
+Reveal a particular cell
+
+```http
+PUT /games/:id/reveal
+```
+Body
+
+```json
+{
+    "row": 2,
+    "column": 2
+}
+```
+
+The attributes `row` and `column` refers to a particular position within the board.
+
+Response
+
+1. `game_json` is game has been revealed successfully
+2. Not found
+```json
+{
+  "status": 404,
+  "code": "not_found",
+  "message": "the game has not been found"
+}
+``` 
+3. Invalid row and column
+```json
+ {
+   "status": 400,
+   "code": "invalid_input",
+   "message": "invalid row and column parameters"
+ }
+ ``` 
+
+
+
