@@ -1,13 +1,39 @@
-package main
+package server
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	gameService "github.com/matiasvarela/minesweeper-API/internal/core/service/game"
+	"github.com/matiasvarela/minesweeper-API/internal/dep"
+	"github.com/matiasvarela/minesweeper-API/internal/handler"
+	gameRepo "github.com/matiasvarela/minesweeper-API/internal/repository/game"
+	"github.com/matiasvarela/minesweeper-API/pkg/clock"
+	"github.com/matiasvarela/minesweeper-API/pkg/random"
+	"os"
 )
 
-func NewProdDynamoDB() *dynamodb.DynamoDB {
+func initDependencies() *dep.Dep {
+	d := &dep.Dep{}
+
+	if os.Getenv("ENV") == "production" {
+		d.DynamoDB = newProdDynamoDB()
+	} else {
+		d.DynamoDB = newLocalDynamoDB()
+	}
+
+	rnd := random.NewRandom()
+	clk := clock.New()
+
+	d.GameRepository = gameRepo.NewDynamoDB(d.DynamoDB)
+	d.GameService = gameService.NewService(rnd, clk, d.GameRepository)
+	d.GameHandler = handler.NewGameHandler(d.GameService)
+
+	return d
+}
+
+func newProdDynamoDB() *dynamodb.DynamoDB {
 	config := &aws.Config{
 		Region:   aws.String("us-east-2"),
 		Credentials: credentials.NewEnvCredentials(),
@@ -18,7 +44,7 @@ func NewProdDynamoDB() *dynamodb.DynamoDB {
 	return dynamodb.New(sess)
 }
 
-func NewLocalDynamoDB() *dynamodb.DynamoDB{
+func newLocalDynamoDB() *dynamodb.DynamoDB{
 	config := &aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
