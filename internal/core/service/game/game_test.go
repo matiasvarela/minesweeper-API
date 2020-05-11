@@ -415,7 +415,7 @@ func TestService_RevealCell(t *testing.T) {
 			want: want{result: gameResult1},
 			mock: func(dep dep, args args) {
 				dep.clock.EXPECT().Now().Return(mockedTime)
-				dep.rnd.EXPECT().GenerateN(game1.Settings.BombsNumber + 1).Return([]int{2, 7, 16, 14, 23, 0})
+				dep.rnd.EXPECT().GenerateN(game1.Settings.Rows*game1.Settings.Columns).Return([]int{2, 7, 16, 14, 23, 0})
 				dep.repository.EXPECT().Get(args.id).Return(&game1, nil)
 				dep.repository.EXPECT().Save(gameResult1).Return(nil)
 			},

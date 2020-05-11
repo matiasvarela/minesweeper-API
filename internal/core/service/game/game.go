@@ -140,7 +140,7 @@ func (srv *service) fillBoardWithBombs(game *domain.Game, exclude domain.Positio
 	var bomb domain.Position
 
 	count := 0
-	for _, v := range srv.rnd.GenerateN(game.Settings.BombsNumber + 1) {
+	for _, v := range srv.rnd.GenerateN(game.Settings.Rows*game.Settings.Columns) {
 		if count == game.Settings.BombsNumber {
 			break
 		}

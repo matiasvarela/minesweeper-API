@@ -7,7 +7,7 @@ minesweeper-API is a rest api for the popular game Minesweeper. It provides the 
 4. Mark a cell with a flag 
 
 ## Notes about this project
-- It uses GinGonic to manage routing
+- It uses Gin-Gonic framework to manage routing
 - It uses an error handling library written by my own
 - It follows a Hexagonal Architecture
 - It uses a DynamoDB to persist the games
@@ -18,6 +18,8 @@ minesweeper-API is a rest api for the popular game Minesweeper. It provides the 
 
 ## Decisions
 - All the endpoints that return the game representation hides the cells with bombs replacing them with empty cells, so it is impossible for clients of this API to know the positions of those bombs.
+- The first cell revealed never touch a bomb.
+- The game starts when the first cell is reveal.
 
 ## Demo
 
