@@ -1,10 +1,16 @@
 # minesweeper-API
-minesweeper-API is a rest api for the popular game Minesweeper. It provides the following endpoints
+minesweeper-API is a rest api for the popular game Minesweeper. It provides the following endpoints:
 
 1. Create a new game
 2. Get a game by id
 3. Reveal a cell
 4. Mark a cell with a flag 
+
+## Demo
+
+```
+$ curl http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080/ping
+```
 
 ## Getting started
 
@@ -16,6 +22,8 @@ $ docker build -t minesweeper:1.0.0 .
 ````
 
 #### Run in local environment
+To run this application locally is necessary to run the local version of dynamodb in port 8000. See https://hub.docker.com/r/amazon/dynamodb-local/
+
 ````
 $ docker run -e ENV=local -p 8080:8080 -d minesweeper:1.0.0
 ````
@@ -30,15 +38,6 @@ To run this application locally is necessary to run the local version of dynamod
 
 ```
 $ go run cmd/restserver/main.go
-```
-
-## Test in production
-A version of this application has been deployed in an aws ec2 instance in the cloud
-
-Host: http://http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080
-
-```
-$ curl http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080/ping
 ```
 
 ## API Documentation
@@ -165,7 +164,7 @@ Response
  ``` 
 
 ### Reveal a cell
-Reveal a particular cell
+Reveals a particular cell. If there is no adjacent bombs then all the adjacent will be revealed repeating this process until no other cell can be revealed. 
 
 ```http
 PUT /games/:id/reveal
