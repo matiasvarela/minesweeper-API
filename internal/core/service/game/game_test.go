@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	e = domain.ElementEmpty
-	X = domain.ElementEmptyMarked
-	E = domain.ElementEmptyRevealed
+	e = domain.EmptyCellCovered
+	X = domain.EmptyCellCoveredAndMarked
+	E = domain.EmptyCellRevealed
 
-	b = domain.ElementBomb
-	Y = domain.ElementBombMarked
-	B = domain.ElementBombRevealed
+	b = domain.BombCellCovered
+	Y = domain.BombCellCoveredAndMarked
+	B = domain.BombCellRevealed
 )
 
 type dep struct {
@@ -152,21 +152,21 @@ func TestService_Create(t *testing.T) {
 	}
 }
 
-func TestService_MarkSquare(t *testing.T) {
-	game1 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmpty)
-	gameResult1 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmptyMarked)
+func TestService_MarkCell(t *testing.T) {
+	game1 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellCovered)
+	gameResult1 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellCoveredAndMarked)
 
-	game2 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmptyMarked)
-	gameResult2 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmpty)
+	game2 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellCoveredAndMarked)
+	gameResult2 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellCovered)
 
-	game3 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementBomb)
-	gameResult3 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementBombMarked)
+	game3 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.BombCellCovered)
+	gameResult3 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.BombCellCoveredAndMarked)
 
-	game4 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementBombMarked)
-	gameResult4 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementBomb)
+	game4 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.BombCellCoveredAndMarked)
+	gameResult4 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.BombCellCovered)
 
-	game5 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmptyRevealed)
-	gameResult5 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.ElementEmptyRevealed)
+	game5 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellRevealed)
+	gameResult5 := EasyMockGameWithElement("xyz", domain.GameStateNew, 1, 1, domain.EmptyCellRevealed)
 
 	type args struct {
 		id     string
@@ -265,7 +265,7 @@ func TestService_MarkSquare(t *testing.T) {
 			dep := newDep(t)
 			service := game.NewService(dep.rnd, dep.clock, dep.repository)
 			tt.mock(dep, tt.args)
-			result, err := service.MarkSquare(tt.args.id, tt.args.row, tt.args.column)
+			result, err := service.MarkCell(tt.args.id, tt.args.row, tt.args.column)
 
 			assert.Equal(t, tt.want.result, result)
 			if err != nil && tt.want.err != nil {
@@ -276,7 +276,7 @@ func TestService_MarkSquare(t *testing.T) {
 	}
 }
 
-func TestService_RevealSquare(t *testing.T) {
+func TestService_RevealCell(t *testing.T) {
 	mockedTime, _ := time.Parse(time.RFC3339, time.RFC3339)
 
 	game1 := EasyMockGameWith("xyz", domain.GameStateNew, 5, domain.Board{
@@ -334,7 +334,7 @@ func TestService_RevealSquare(t *testing.T) {
 		{E, E, E, E, E, b},
 	}, mockedTime, mockedTime)
 
-	game5 := EasyMockGameWithElement("xyz", domain.GameStateOnGoing, 1, 1, domain.ElementEmptyMarked)
+	game5 := EasyMockGameWithElement("xyz", domain.GameStateOnGoing, 1, 1, domain.EmptyCellCoveredAndMarked)
 
 	game6 := EasyMockGameWith("xyz", domain.GameStateOnGoing, 2, domain.Board{
 		{e, e, e, e, e, e},
@@ -402,7 +402,7 @@ func TestService_RevealSquare(t *testing.T) {
 			},
 		},
 		{
-			name: "square is marked",
+			name: "cell is marked",
 			args: args{id: "xyz", row: 1, column: 1},
 			want: want{result: game5},
 			mock: func(dep dep, args args) {
@@ -410,7 +410,7 @@ func TestService_RevealSquare(t *testing.T) {
 			},
 		},
 		{
-			name: "reveal first square successfully",
+			name: "reveal first cell successfully",
 			args: args{id: "xyz", row: 2, column: 2},
 			want: want{result: gameResult1},
 			mock: func(dep dep, args args) {
@@ -421,7 +421,7 @@ func TestService_RevealSquare(t *testing.T) {
 			},
 		},
 		{
-			name: "reveal square in cascade successfully",
+			name: "reveal cell in cascade successfully",
 			args: args{id: "xyz", row: 1, column: 1},
 			want: want{result: gameResult2},
 			mock: func(dep dep, args args) {
@@ -431,7 +431,7 @@ func TestService_RevealSquare(t *testing.T) {
 			},
 		},
 		{
-			name: "reveal square with bomb and lost game",
+			name: "reveal cell with bomb and lost game",
 			args: args{id: "xyz", row: 2, column: 3},
 			want: want{result: gameResult3},
 			mock: func(dep dep, args args) {
@@ -441,7 +441,7 @@ func TestService_RevealSquare(t *testing.T) {
 			},
 		},
 		{
-			name: "reveal square and won game",
+			name: "reveal cell and won game",
 			args: args{id: "xyz", row: 1, column: 1},
 			want: want{result: gameResult4},
 			mock: func(dep dep, args args) {
@@ -469,7 +469,7 @@ func TestService_RevealSquare(t *testing.T) {
 			dep := newDep(t)
 			service := game.NewService(dep.rnd, dep.clock, dep.repository)
 			tt.mock(dep, tt.args)
-			result, err := service.RevealSquare(tt.args.id, tt.args.row, tt.args.column)
+			result, err := service.RevealCell(tt.args.id, tt.args.row, tt.args.column)
 
 			assert.Equal(t, tt.want.result, result)
 			if err != nil && tt.want.err != nil {
@@ -502,7 +502,7 @@ func EasyMockGameWith(id string, state string, bombsNumber int, board domain.Boa
 	return game
 }
 
-func EasyMockGameWithElement(id string, state string, row int, column int, element domain.Element) domain.Game {
+func EasyMockGameWithElement(id string, state string, row int, column int, element domain.Cell) domain.Game {
 	game := domain.Game{
 		ID:       id,
 		Board:    domain.NewEmptyBoard(6, 6),

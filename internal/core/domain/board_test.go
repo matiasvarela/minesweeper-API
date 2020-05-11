@@ -7,17 +7,17 @@ import (
 )
 
 var (
-	E = domain.ElementEmpty
-	B = domain.ElementBomb
-	R = domain.ElementEmptyRevealed
+	e = domain.EmptyCellCovered
+	b = domain.BombCellCovered
+	E = domain.EmptyCellRevealed
 )
 
 func TestNewEmptyBoard(t *testing.T) {
 	// Setup
 	board := domain.Board{
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
 	}
 
 	// Execute
@@ -30,13 +30,13 @@ func TestNewEmptyBoard(t *testing.T) {
 func TestBoard_Is(t *testing.T) {
 	// Setup
 	board := domain.Board{
-		{E, E, E, E, E, E},
-		{E, E, B, E, E, E},
-		{E, E, E, E, E, E},
+		{e, e, e, e, e, e},
+		{e, e, b, e, e, e},
+		{e, e, e, e, e, e},
 	}
 
 	// Execute
-	result := board.Is(domain.NewPosition(1, 2), B)
+	result := board.Is(domain.NewPosition(1, 2), b)
 
 	// Verify
 	assert.True(t, result)
@@ -45,38 +45,38 @@ func TestBoard_Is(t *testing.T) {
 func TestBoard_Get(t *testing.T) {
 	// Setup
 	board := domain.Board{
-		{E, E, E, E, E, E},
-		{E, E, B, E, E, E},
-		{E, E, E, E, E, E},
+		{e, e, e, e, e, e},
+		{e, e, b, e, e, e},
+		{e, e, e, e, e, e},
 	}
 
 	// Execute
 	result := board.Get(domain.NewPosition(1, 2))
 
 	// Verify
-	assert.Equal(t, B, result)
+	assert.Equal(t, b, result)
 }
 
 func TestBoard_Set(t *testing.T) {
 	// Setup
 	board := domain.Board{
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
 	}
 
 	// Execute
-	board.Set(domain.NewPosition(1, 2), B)
+	board.Set(domain.NewPosition(1, 2), b)
 
 	// Verify
-	assert.Equal(t, B, board[1][2])
+	assert.Equal(t, b, board[1][2])
 }
 
 func TestBoard_IsValidPosition(t *testing.T) {
 	board := domain.Board{
-		{E, E, E, E, B, E},
-		{E, B, E, E, E, B},
-		{B, E, E, E, R, E},
+		{e, e, e, e, b, e},
+		{e, b, e, e, e, b},
+		{b, e, e, e, E, e},
 	}
 
 	type args struct {
@@ -133,15 +133,15 @@ func TestBoard_IsValidPosition(t *testing.T) {
 
 func TestBoard_GetNeighborsIfNoBombs(t *testing.T) {
 	board := domain.Board{
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
 	}
 
 	boardWithBombs := domain.Board{
-		{E, E, E, E, E, E},
-		{B, E, E, E, E, E},
-		{E, E, E, E, B, E},
+		{e, e, e, e, e, e},
+		{b, e, e, e, e, e},
+		{e, e, e, e, b, e},
 	}
 
 	type args struct {
@@ -203,9 +203,9 @@ func TestBoard_GetNeighborsIfNoBombs(t *testing.T) {
 func TestBoard_HideBombs(t *testing.T) {
 	// Setup
 	board := domain.Board{
-		{E, R, E, B, E, B},
-		{E, E, B, E, B, E},
-		{B, E, E, B, E, E},
+		{e, E, e, b, e, b},
+		{e, e, b, e, b, e},
+		{b, e, e, b, e, e},
 	}
 
 	// Execute
@@ -213,8 +213,8 @@ func TestBoard_HideBombs(t *testing.T) {
 
 	// Verify
 	assert.Equal(t, domain.Board{
-		{E, R, E, E, E, E},
-		{E, E, E, E, E, E},
-		{E, E, E, E, E, E},
+		{e, E, e, e, e, e},
+		{e, e, e, e, e, e},
+		{e, e, e, e, e, e},
 	}, board)
 }

@@ -49,8 +49,8 @@ func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
 	return game, nil
 }
 
-// MarkSquare mark/unmark the given square with a flag
-func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, error) {
+// MarkCell mark/unmark the given cell with a flag
+func (srv *service) MarkCell(id string, row int, column int) (domain.Game, error) {
 	game, err := srv.Get(id)
 	if err != nil {
 		return domain.Game{}, errors.Wrap(err, err.Error())
@@ -63,14 +63,14 @@ func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, err
 	}
 
 	switch game.Board.Get(pos) {
-	case domain.ElementEmpty:
-		game.Board.Set(pos, domain.ElementEmptyMarked)
-	case domain.ElementEmptyMarked:
-		game.Board.Set(pos, domain.ElementEmpty)
-	case domain.ElementBomb:
-		game.Board.Set(pos, domain.ElementBombMarked)
-	case domain.ElementBombMarked:
-		game.Board.Set(pos, domain.ElementBomb)
+	case domain.EmptyCellCovered:
+		game.Board.Set(pos, domain.EmptyCellCoveredAndMarked)
+	case domain.EmptyCellCoveredAndMarked:
+		game.Board.Set(pos, domain.EmptyCellCovered)
+	case domain.BombCellCovered:
+		game.Board.Set(pos, domain.BombCellCoveredAndMarked)
+	case domain.BombCellCoveredAndMarked:
+		game.Board.Set(pos, domain.BombCellCovered)
 	default:
 		return game, nil
 	}
@@ -82,8 +82,8 @@ func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, err
 	return game, nil
 }
 
-// RevealSquare reveals the given square and will reveal recursively the adjacent squares if there is no bomb as neighbor
-func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, error) {
+// RevealCell reveals the given cell and will reveal recursively the adjacent cells if there is no bomb as neighbor
+func (srv *service) RevealCell(id string, row int, column int) (domain.Game, error) {
 	game, err := srv.Get(id)
 	if err != nil {
 		return domain.Game{}, errors.Wrap(err, err.Error())
@@ -100,7 +100,7 @@ func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, e
 	}
 
 	switch game.Board.Get(pos) {
-	case domain.ElementEmpty:
+	case domain.EmptyCellCovered:
 		if game.State == domain.GameStateNew {
 			srv.startGame(&game, pos)
 			break
@@ -108,12 +108,12 @@ func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, e
 
 		srv.revealInCascade(&game, pos)
 
-		if game.Board.Count(domain.ElementEmptyRevealed) == game.Settings.Rows*game.Settings.Columns - game.Settings.BombsNumber{
+		if game.Board.Count(domain.EmptyCellRevealed) == game.Settings.Rows*game.Settings.Columns - game.Settings.BombsNumber{
 			game.State = domain.GameStateWon
 			game.EndedAt = srv.clock.Now()
 		}
-	case domain.ElementBomb:
-		game.Board.Set(pos, domain.ElementBombRevealed)
+	case domain.BombCellCovered:
+		game.Board.Set(pos, domain.BombCellRevealed)
 		game.State = domain.GameStateLost
 		game.EndedAt = srv.clock.Now()
 	default:
@@ -130,7 +130,7 @@ func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, e
 func (srv *service) startGame(game *domain.Game, pos domain.Position) {
 	game.State = domain.GameStateOnGoing
 	game.StartedAt = srv.clock.Now()
-	game.Board.Set(pos, domain.ElementEmptyRevealed)
+	game.Board.Set(pos, domain.EmptyCellRevealed)
 
 	srv.fillBoardWithBombs(game, pos)
 }
@@ -153,15 +153,15 @@ func (srv *service) fillBoardWithBombs(game *domain.Game, exclude domain.Positio
 			continue
 		}
 
-		game.Board.Set(bomb, domain.ElementBomb)
+		game.Board.Set(bomb, domain.BombCellCovered)
 		count++
 	}
 }
 
 func (srv *service) revealInCascade(game *domain.Game, pos domain.Position) {
 	switch game.Board.Get(pos) {
-	case domain.ElementEmpty:
-		game.Board.Set(pos, domain.ElementEmptyRevealed)
+	case domain.EmptyCellCovered:
+		game.Board.Set(pos, domain.EmptyCellRevealed)
 	}
 
 	for _, neighbor := range game.Board.GetNeighborsIfNoBombs(pos) {

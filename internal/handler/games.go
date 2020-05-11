@@ -58,7 +58,7 @@ func (hdl *GameHandler) Mark(request *gin.Context) {
 		return
 	}
 
-	game, err := hdl.gameService.MarkSquare(request.Param("id"), body.Row, body.Column)
+	game, err := hdl.gameService.MarkCell(request.Param("id"), body.Row, body.Column)
 	if err != nil {
 		request.AbortWithStatusJSON(apierror.New(err))
 		return
@@ -79,7 +79,7 @@ func (hdl *GameHandler) Reveal(request *gin.Context) {
 		return
 	}
 
-	game, err := hdl.gameService.RevealSquare(request.Param("id"), body.Row, body.Column)
+	game, err := hdl.gameService.RevealCell(request.Param("id"), body.Row, body.Column)
 	if err != nil {
 		request.AbortWithStatusJSON(apierror.New(err))
 		return

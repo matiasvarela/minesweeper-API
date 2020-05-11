@@ -1,18 +1,18 @@
 package domain
 
 const (
-	ElementEmpty         = Element('e')
-	ElementEmptyMarked   = Element('X')
-	ElementEmptyRevealed = Element('E')
+	EmptyCellCovered          = Cell('e')
+	EmptyCellCoveredAndMarked = Cell('X')
+	EmptyCellRevealed         = Cell('E')
 
-	ElementBomb          = Element('b')
-	ElementBombMarked    = Element('Y')
-	ElementBombRevealed  = Element('B')
+	BombCellCovered          = Cell('b')
+	BombCellCoveredAndMarked = Cell('Y')
+	BombCellRevealed         = Cell('B')
 )
 
-type Board [][]Element
+type Board [][]Cell
 
-type Element rune
+type Cell string
 
 type Position struct {
 	Row    int
@@ -20,14 +20,14 @@ type Position struct {
 }
 
 func NewEmptyBoard(rows int, columns int) Board {
-	board := make([][]Element, rows)
+	board := make([][]Cell, rows)
 	for i := range board {
-		board[i] = make([]Element, columns)
+		board[i] = make([]Cell, columns)
 	}
 
 	for row := range board {
 		for column := range board[0] {
-			board[row][column] = ElementEmpty
+			board[row][column] = EmptyCellCovered
 		}
 	}
 
@@ -39,17 +39,17 @@ func NewPosition(row int, column int) Position {
 }
 
 // Get retrieves the element in the given position
-func (board Board) Get(pos Position) Element {
+func (board Board) Get(pos Position) Cell {
 	return board[pos.Row][pos.Column]
 }
 
 // Set put the given element in the given position
-func (board Board) Set(pos Position, element Element) {
+func (board Board) Set(pos Position, element Cell) {
 	board[pos.Row][pos.Column] = element
 }
 
 // Is returns true if the element in the given position is one of the elements given
-func (board Board) Is(pos Position, elements ...Element) bool {
+func (board Board) Is(pos Position, elements ...Cell) bool {
 	e := board.Get(pos)
 	for _, element := range elements {
 		if e == element {
@@ -78,11 +78,11 @@ func (board Board) GetNeighborsIfNoBombs(pos Position) []Position {
 				continue
 			}
 
-			if board.Is(current, ElementBomb) {
+			if board.Is(current, BombCellCovered) {
 				return []Position{}
 			}
 
-			if !board.Is(current, ElementEmpty) {
+			if !board.Is(current, EmptyCellCovered) {
 				continue
 			}
 
@@ -93,24 +93,24 @@ func (board Board) GetNeighborsIfNoBombs(pos Position) []Position {
 	return neighbors
 }
 
-// HideBombs replace bombs for empty squares
+// HideBombs replace bombs for empty cells
 func (board Board) HideBombs() {
 	for row := range board {
 		for column := range board[0] {
-			if board.Is(NewPosition(row, column), ElementBomb) {
-				board.Set(NewPosition(row, column), ElementEmpty)
+			if board.Is(NewPosition(row, column), BombCellCovered) {
+				board.Set(NewPosition(row, column), EmptyCellCovered)
 			}
 		}
 	}
 }
 
 // Count counts the elements of given type
-func (board Board) Count(element Element) int {
+func (board Board) Count(element Cell) int {
 	count := 0
 	for row := range board {
 		for column := range board[0] {
 			if board[row][column] == element {
-				count ++
+				count++
 			}
 		}
 	}
