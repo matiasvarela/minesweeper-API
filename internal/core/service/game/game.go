@@ -19,6 +19,7 @@ func NewService(rnd random.Random, clock clock.Clock, repository port.GameReposi
 	return &service{rnd: rnd, clock: clock, repository: repository}
 }
 
+// Get retrieves the game with id given
 func (srv *service) Get(id string) (domain.Game, error) {
 	game, err := srv.repository.Get(id)
 	if err != nil {
@@ -32,6 +33,7 @@ func (srv *service) Get(id string) (domain.Game, error) {
 	return *game, nil
 }
 
+// Create creates a new game with the settings given
 func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
 	game := domain.Game{
 		ID:       srv.rnd.GenerateID(),
@@ -47,6 +49,7 @@ func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
 	return game, nil
 }
 
+// MarkSquare mark/unmark the given square with a flag
 func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, error) {
 	game, err := srv.Get(id)
 	if err != nil {
@@ -79,6 +82,7 @@ func (srv *service) MarkSquare(id string, row int, column int) (domain.Game, err
 	return game, nil
 }
 
+// RevealSquare reveals the given square and will reveal recursively the adjacent squares if there is no bomb as neighbor
 func (srv *service) RevealSquare(id string, row int, column int) (domain.Game, error) {
 	game, err := srv.Get(id)
 	if err != nil {
