@@ -11,6 +11,4 @@ FROM alpine
 
 COPY --from=builder /application /app/application
 
-ENV ENV=production
-
 ENTRYPOINT ./app/application

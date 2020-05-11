@@ -104,6 +104,7 @@ func (board Board) HideBombs() {
 	}
 }
 
+// Count counts the elements of given type
 func (board Board) Count(element Element) int {
 	count := 0
 	for row := range board {
