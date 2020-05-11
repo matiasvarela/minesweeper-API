@@ -7,13 +7,14 @@ import (
 	"github.com/matiasvarela/errors"
 	"github.com/matiasvarela/minesweeper-API/internal/core/domain"
 	"github.com/matiasvarela/minesweeper-API/pkg/apperrors"
+	"github.com/matiasvarela/minesweeper-API/pkg/dynamodbiface"
 )
 
 type awsDynamoDB struct {
-	client *dynamodb.DynamoDB
+	client dynamodbiface.DynamoDB
 }
 
-func NewDynamoDB(client *dynamodb.DynamoDB) *awsDynamoDB {
+func NewDynamoDB(client dynamodbiface.DynamoDB) *awsDynamoDB {
 	return &awsDynamoDB{client: client}
 }
 
