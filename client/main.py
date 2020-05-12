@@ -4,9 +4,9 @@ import time
 class MinesweeperAPI:
     baseURL = 'http://ec2-3-14-1-190.us-east-2.compute.amazonaws.com:8080'
 
-    def createGame(self, rows, columns, bombs):
+    def createGame(self, userId, rows, columns, bombs):
         return requests.post(
-            url=self.baseURL+'/games',
+            url=self.baseURL+'/users/'+str(userId)+'/games',
             json={
                 "rows": rows,
                 "columns": columns,
@@ -14,20 +14,20 @@ class MinesweeperAPI:
             }
         ).json()
 
-    def getGame(self, gameId):
-        return requests.get(url=self.baseURL+'/games/'+gameId).json()
+    def getGame(self, userId, gameId):
+        return requests.get(url=self.baseURL+'/users/'+str(userId)+'/games/'+str(gameId)).json()
 
-    def markCell(self, gameId, row, column):
+    def markCell(self, userId, gameId, row, column):
         return requests.put(
-            url=self.baseURL+'/games/'+gameId+'/mark',
+            url=self.baseURL+'/users/'+str(userId)+'/games/'+str(gameId)+'/mark',
             json={
                 "row": row,
                 "column": column
             }).json()
 
-    def RevealCell(self, gameId, row, column):
+    def RevealCell(self, userId, gameId, row, column):
         return requests.put(
-            url=self.baseURL+'/games/'+gameId+'/play-square',
+            url=self.baseURL+'/users/+'+str(userId)+'+/games/'+str(gameId)+'/play-square',
             json={
                 "row": row,
                 "column": column
