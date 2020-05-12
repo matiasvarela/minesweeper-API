@@ -14,6 +14,10 @@ import (
 	"os"
 )
 
+const (
+	dynamoDBGamesTableName = "Games"
+)
+
 func initDependencies() *dep.Dep {
 	d := &dep.Dep{}
 
@@ -28,7 +32,7 @@ func initDependencies() *dep.Dep {
 
 	clk := clock.New()
 
-	d.GameRepository = gameRepo.NewDynamoDB(d.DynamoDB)
+	d.GameRepository = gameRepo.NewDynamoDB(dynamoDBGamesTableName, d.DynamoDB)
 	d.GameService = gameService.NewService(rnd, clk, d.GameRepository)
 	d.GameHandler = handler.NewGameHandler(d.GameService)
 
@@ -37,7 +41,7 @@ func initDependencies() *dep.Dep {
 
 func newProdDynamoDB() *dynamodb.DynamoDB {
 	config := &aws.Config{
-		Region:   aws.String("us-east-2"),
+		Region:      aws.String("us-east-2"),
 		Credentials: credentials.NewEnvCredentials(),
 	}
 
@@ -46,7 +50,7 @@ func newProdDynamoDB() *dynamodb.DynamoDB {
 	return dynamodb.New(sess)
 }
 
-func newLocalDynamoDB() *dynamodb.DynamoDB{
+func newLocalDynamoDB() *dynamodb.DynamoDB {
 	config := &aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -62,22 +66,30 @@ func newLocalDynamoDB() *dynamodb.DynamoDB{
 				AttributeName: aws.String("id"),
 				AttributeType: aws.String("S"),
 			},
+			{
+				AttributeName: aws.String("user_id"),
+				AttributeType: aws.String("S"),
+			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("id"),
+				AttributeName: aws.String("user_id"),
 				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("id"),
+				KeyType:       aws.String("RANGE"),
 			},
 		},
 		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("Games"),
+		TableName: aws.String(dynamoDBGamesTableName),
 	}
 
 	svc.DeleteTable(&dynamodb.DeleteTableInput{
-		TableName: aws.String("Games"),
+		TableName: aws.String(dynamoDBGamesTableName),
 	})
 
 	_, err := svc.CreateTable(input)

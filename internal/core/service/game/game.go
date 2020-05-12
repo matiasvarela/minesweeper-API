@@ -19,9 +19,9 @@ func NewService(rnd random.Random, clock clock.Clock, repository port.GameReposi
 	return &service{rnd: rnd, clock: clock, repository: repository}
 }
 
-// Get retrieves the game with id given
-func (srv *service) Get(id string) (domain.Game, error) {
-	game, err := srv.repository.Get(id)
+// Get retrieves the game belonging to the userID given and with gameID given
+func (srv *service) Get(userID string, gameID string) (domain.Game, error) {
+	game, err := srv.repository.Get(userID, gameID)
 	if err != nil {
 		return domain.Game{}, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at getting game from repository")
 	}
@@ -33,10 +33,21 @@ func (srv *service) Get(id string) (domain.Game, error) {
 	return *game, nil
 }
 
-// Create creates a new game with the settings given
-func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
+// Get retrieves all the games belonging to the userID given
+func (srv *service) GetAll(userID string) ([]domain.Game, error) {
+	games, err := srv.repository.GetAll(userID)
+	if err != nil {
+		return nil, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at searching games from repository")
+	}
+
+	return games, nil
+}
+
+// Create creates a new game for the user and settings given
+func (srv *service) Create(userID string, settings domain.GameSettings) (domain.Game, error) {
 	game := domain.Game{
 		ID:       srv.rnd.GenerateID(),
+		UserID:   userID,
 		Settings: settings,
 		Board:    domain.NewEmptyBoard(settings.Rows, settings.Columns),
 		State:    domain.GameStateNew,
@@ -50,8 +61,8 @@ func (srv *service) Create(settings domain.GameSettings) (domain.Game, error) {
 }
 
 // MarkCell mark/unmark the given cell with a flag
-func (srv *service) MarkCell(id string, row int, column int) (domain.Game, error) {
-	game, err := srv.Get(id)
+func (srv *service) MarkCell(userID string, gameID string, row int, column int) (domain.Game, error) {
+	game, err := srv.Get(userID, gameID)
 	if err != nil {
 		return domain.Game{}, errors.Wrap(err, err.Error())
 	}
@@ -83,8 +94,8 @@ func (srv *service) MarkCell(id string, row int, column int) (domain.Game, error
 }
 
 // RevealCell reveals the given cell and will reveal recursively the adjacent cells if there is no bomb as neighbor
-func (srv *service) RevealCell(id string, row int, column int) (domain.Game, error) {
-	game, err := srv.Get(id)
+func (srv *service) RevealCell(userID string, gameID string, row int, column int) (domain.Game, error) {
+	game, err := srv.Get(userID, gameID)
 	if err != nil {
 		return domain.Game{}, errors.Wrap(err, err.Error())
 	}
@@ -108,7 +119,7 @@ func (srv *service) RevealCell(id string, row int, column int) (domain.Game, err
 
 		srv.revealInCascade(&game, pos)
 
-		if game.Board.Count(domain.EmptyCellRevealed) == game.Settings.Rows*game.Settings.Columns - game.Settings.BombsNumber{
+		if game.Board.Count(domain.EmptyCellRevealed) == game.Settings.Rows*game.Settings.Columns-game.Settings.BombsNumber {
 			game.State = domain.GameStateWon
 			game.EndedAt = srv.clock.Now()
 		}
@@ -140,7 +151,7 @@ func (srv *service) fillBoardWithBombs(game *domain.Game, exclude domain.Positio
 	var bomb domain.Position
 
 	count := 0
-	for _, v := range srv.rnd.GenerateN(game.Settings.Rows*game.Settings.Columns) {
+	for _, v := range srv.rnd.GenerateN(game.Settings.Rows * game.Settings.Columns) {
 		if count == game.Settings.BombsNumber {
 			break
 		}

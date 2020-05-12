@@ -20,7 +20,7 @@ func NewGameHandler(gameService port.GameService) *GameHandler {
 }
 
 func (hdl *GameHandler) Get(request *gin.Context) {
-	game, err := hdl.gameService.Get(request.Param("id"))
+	game, err := hdl.gameService.Get(request.Param("user_id"), request.Param("game_id"))
 	if err != nil {
 		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
@@ -32,6 +32,21 @@ func (hdl *GameHandler) Get(request *gin.Context) {
 	request.JSON(http.StatusOK, game)
 }
 
+func (hdl *GameHandler) GetAll(request *gin.Context) {
+	games, err := hdl.gameService.GetAll(request.Param("user_id"))
+	if err != nil {
+		log.Error(errors.String(err))
+		request.AbortWithStatusJSON(apierror.New(err))
+		return
+	}
+
+	for i := range games {
+		games[i].Board.HideBombs()
+	}
+
+	request.JSON(http.StatusOK, games)
+}
+
 func (hdl *GameHandler) Create(request *gin.Context) {
 	body := domain.GameSettings{}
 	if err := request.BindJSON(&body); err != nil {
@@ -41,7 +56,7 @@ func (hdl *GameHandler) Create(request *gin.Context) {
 		return
 	}
 
-	game, err := hdl.gameService.Create(body)
+	game, err := hdl.gameService.Create(request.Param("user_id"), body)
 	if err != nil {
 		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
@@ -55,7 +70,7 @@ func (hdl *GameHandler) Create(request *gin.Context) {
 
 func (hdl *GameHandler) Mark(request *gin.Context) {
 	body := struct {
-		Row int `json:"row"`
+		Row    int `json:"row"`
 		Column int `json:"column"`
 	}{}
 	if err := request.BindJSON(&body); err != nil {
@@ -65,7 +80,7 @@ func (hdl *GameHandler) Mark(request *gin.Context) {
 		return
 	}
 
-	game, err := hdl.gameService.MarkCell(request.Param("id"), body.Row, body.Column)
+	game, err := hdl.gameService.MarkCell(request.Param("user_id"), request.Param("game_id"), body.Row, body.Column)
 	if err != nil {
 		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))
@@ -79,7 +94,7 @@ func (hdl *GameHandler) Mark(request *gin.Context) {
 
 func (hdl *GameHandler) Reveal(request *gin.Context) {
 	body := struct {
-		Row int `json:"row"`
+		Row    int `json:"row"`
 		Column int `json:"column"`
 	}{}
 	if err := request.BindJSON(&body); err != nil {
@@ -89,7 +104,7 @@ func (hdl *GameHandler) Reveal(request *gin.Context) {
 		return
 	}
 
-	game, err := hdl.gameService.RevealCell(request.Param("id"), body.Row, body.Column)
+	game, err := hdl.gameService.RevealCell(request.Param("user_id"), request.Param("game_id"), body.Row, body.Column)
 	if err != nil {
 		log.Error(errors.String(err))
 		request.AbortWithStatusJSON(apierror.New(err))

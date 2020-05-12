@@ -3,8 +3,9 @@ minesweeper-API is a rest api for the popular game Minesweeper. It provides the 
 
 1. Create a new game
 2. Get a game by id
-3. Reveal a cell
-4. Mark a cell with a flag 
+3. Get all the games for a given user id
+4. Reveal a cell
+5. Mark a cell with a flag 
 
 ## Notes about this project
 - It uses Gin-Gonic framework to manage routing
@@ -58,9 +59,10 @@ $ go run cmd/restserver/main.go
 ## API Documentation
 
 ### Create a new game
+Creates a new game associated with the given user. 
 
 ```http
-POST /games
+POST /users/:user_id/games
 ```
 
 Body
@@ -79,6 +81,7 @@ The following json correspond with a `game` and from now on we will call it `gam
 ```json
 {
   "id": "7ecbe4ee-4f1d-426a-bf8a-0d2382d61805",
+  "user_id": "111",
   "board": [
     ["e","e","e","e"],
     ["e","e","e","e"],
@@ -97,6 +100,8 @@ The following json correspond with a `game` and from now on we will call it `gam
 ```
 
 The `id` attribute is the unique id for the created game.
+
+The `user_id` attribute is the id of the user that owns the game.
 
 The `board` attribute is a matrix of cells that represents the board of the game.
 
@@ -126,7 +131,7 @@ The `ended_at` attribute indicates the time when the game ended.
 Get a previously created game given its unique id. 
 
 ```http
-GET /games/:id
+GET /users/:user_id/games/:game_id
 ```
 
 Response
@@ -141,11 +146,22 @@ Response
 }
 ``` 
 
+### Get user games
+Gets all the games that belongs to a particular user
+
+```http
+GET /users/:user_id/games
+```
+
+Response
+
+1. an array of `game_json`
+
 ### Mark a cell with a flag
 Mark a cell with a flag. A cell marked by flag means that that particular cell cannot be revealed unless it is unmarked. 
 
 ```http
-PUT /games/:id/mark
+PUT /users/:user_id/games/:game_id/actions/mark
 ```
 Body
 
@@ -160,7 +176,7 @@ The attributes `row` and `column` refers to a particular position within the boa
 
 Response
 
-1. `game_json` is game has been marked/unmarked successfully
+1. `game_json` if the game has been marked/unmarked successfully
 2. Not found
 ```json
 {
@@ -182,7 +198,7 @@ Response
 Reveals a particular cell. If there is no adjacent bombs then all the adjacent (except those marked with a flag) will be revealed repeating this process until no other cell can be revealed. 
 
 ```http
-PUT /games/:id/reveal
+PUT /users/:user_id/games/:game_id/actions/reveal
 ```
 Body
 

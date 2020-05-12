@@ -33,6 +33,21 @@ func (m *MockDynamoDB) EXPECT() *MockDynamoDBMockRecorder {
 	return m.recorder
 }
 
+// Query mocks base method
+func (m *MockDynamoDB) Query(arg0 *dynamodb.QueryInput) (*dynamodb.QueryOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Query", arg0)
+	ret0, _ := ret[0].(*dynamodb.QueryOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Query indicates an expected call of Query
+func (mr *MockDynamoDBMockRecorder) Query(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockDynamoDB)(nil).Query), arg0)
+}
+
 // GetItem mocks base method
 func (m *MockDynamoDB) GetItem(arg0 *dynamodb.GetItemInput) (*dynamodb.GetItemOutput, error) {
 	m.ctrl.T.Helper()

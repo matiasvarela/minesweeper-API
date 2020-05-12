@@ -3,8 +3,9 @@ package port
 import "github.com/matiasvarela/minesweeper-API/internal/core/domain"
 
 type GameService interface {
-	Get(id string) (domain.Game, error)
-	Create(settings domain.GameSettings) (domain.Game, error)
-	MarkCell(id string, row int, column int) (domain.Game, error)
-	RevealCell(id string, row int, column int) (domain.Game, error)
+	Get(userID string, gameID string) (domain.Game, error)
+	GetAll(userID string) ([]domain.Game, error)
+	Create(userID string, settings domain.GameSettings) (domain.Game, error)
+	MarkCell(userID string, gameID string, row int, column int) (domain.Game, error)
+	RevealCell(userID string, gameID string, row int, column int) (domain.Game, error)
 }

@@ -34,18 +34,33 @@ func (m *MockGameRepository) EXPECT() *MockGameRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockGameRepository) Get(id string) (*domain.Game, error) {
+func (m *MockGameRepository) Get(userID, gameID string) (*domain.Game, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", userID, gameID)
 	ret0, _ := ret[0].(*domain.Game)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockGameRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockGameRepositoryMockRecorder) Get(userID, gameID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGameRepository)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGameRepository)(nil).Get), userID, gameID)
+}
+
+// GetAll mocks base method
+func (m *MockGameRepository) GetAll(userID string) ([]domain.Game, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", userID)
+	ret0, _ := ret[0].([]domain.Game)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll
+func (mr *MockGameRepositoryMockRecorder) GetAll(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGameRepository)(nil).GetAll), userID)
 }
 
 // Save mocks base method

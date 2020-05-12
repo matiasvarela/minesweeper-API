@@ -11,8 +11,9 @@ func routes(router *gin.Engine, dependencies *dep.Dep) {
 		request.String(http.StatusOK, "pong")
 	})
 
-	router.GET("/games/:id", dependencies.GameHandler.Get)
-	router.POST("/games", dependencies.GameHandler.Create)
-	router.PUT("/games/:id/reveal", dependencies.GameHandler.Reveal)
-	router.PUT("/games/:id/mark", dependencies.GameHandler.Mark)
+	router.POST("/users/:user_id/games", dependencies.GameHandler.Create)
+	router.GET("/users/:user_id/games", dependencies.GameHandler.GetAll)
+	router.GET("/users/:user_id/games/:game_id", dependencies.GameHandler.Get)
+	router.PUT("/users/:user_id/games/:game_id/actions/reveal", dependencies.GameHandler.Reveal)
+	router.PUT("/users/:user_id/games/:game_id/actions/mark", dependencies.GameHandler.Mark)
 }

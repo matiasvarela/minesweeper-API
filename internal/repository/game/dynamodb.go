@@ -11,24 +11,26 @@ import (
 )
 
 type awsDynamoDB struct {
-	client dynamodbiface.DynamoDB
+	tableName string
+	client    dynamodbiface.DynamoDB
 }
 
-func NewDynamoDB(client dynamodbiface.DynamoDB) *awsDynamoDB {
-	return &awsDynamoDB{client: client}
+func NewDynamoDB(tableName string, client dynamodbiface.DynamoDB) *awsDynamoDB {
+	return &awsDynamoDB{client: client, tableName: tableName}
 }
 
 type GameKey struct {
-	ID string `json:"id"`
+	ID     string `json:"id"`
+	UserID string `json:"user_id"`
 }
 
-func (db *awsDynamoDB) Get(id string) (*domain.Game, error) {
-	key, err := dynamodbattribute.MarshalMap(GameKey{ID: id})
+func (db *awsDynamoDB) Get(userID string, gameID string) (*domain.Game, error) {
+	key, err := dynamodbattribute.MarshalMap(GameKey{ID: gameID, UserID: userID})
 	if err != nil {
 		return nil, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at generating dynamo db key")
 	}
 
-	result, err := db.client.GetItem(&dynamodb.GetItemInput{Key: key, TableName: aws.String("Games")})
+	result, err := db.client.GetItem(&dynamodb.GetItemInput{Key: key, TableName: aws.String(db.tableName)})
 	if err != nil {
 		return nil, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at getting item from dynamo db")
 	}
@@ -45,6 +47,41 @@ func (db *awsDynamoDB) Get(id string) (*domain.Game, error) {
 	return &game, nil
 }
 
+func (db *awsDynamoDB) GetAll(userID string) ([]domain.Game, error) {
+	var queryInput = &dynamodb.QueryInput{
+		TableName: aws.String(db.tableName),
+		KeyConditions: map[string]*dynamodb.Condition{
+			"user_id": {
+				ComparisonOperator: aws.String("EQ"),
+				AttributeValueList: []*dynamodb.AttributeValue{
+					{
+						S: aws.String(userID),
+					},
+				},
+			},
+		},
+	}
+
+	resp, err := db.client.Query(queryInput)
+	if err != nil {
+		return nil, err
+	}
+
+	games := []domain.Game{}
+	var game domain.Game
+
+	for _, item := range resp.Items {
+		game = domain.Game{}
+		if err := dynamodbattribute.UnmarshalMap(item, &game); err != nil {
+			return nil, errors.New(apperrors.Internal, err, "an internal error has occurred", "failed at unmarshalling item")
+		}
+
+		games = append(games, game)
+	}
+
+	return games, nil
+}
+
 func (db *awsDynamoDB) Save(game domain.Game) error {
 	item, err := dynamodbattribute.MarshalMap(game)
 	if err != nil {
@@ -53,7 +90,7 @@ func (db *awsDynamoDB) Save(game domain.Game) error {
 
 	_, err = db.client.PutItem(&dynamodb.PutItemInput{
 		Item:      item,
-		TableName: aws.String("Games"),
+		TableName: aws.String(db.tableName),
 	})
 
 	if err != nil {
